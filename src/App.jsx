@@ -1,32 +1,63 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
+import { useEffect, useState } from 'react'
 import './App.css'
+import initialMarkdown from './assets/initial.md'
+import Editor from './components/Editor'
+import Previewer from './components/Previewer'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [markdown, setMarkdown] = useState();
+  const [maximizedWindow, setMaximizedWindow] = useState('');
+  
+  useEffect(()=> {
+    console.log('fetching....')
+    fetch(initialMarkdown)
+      .then(reponse => {
+        return reponse.text()
+      })
+      .then(text => {
+        setMarkdown(text);
+      })
+  }, []) 
 
+  const handleChange = (event) => {
+    const newValue = event.target.value;
+    console.log('setting new value');
+    setMarkdown(newValue);
+  }
+
+  const handleMaximize = (windowName) => {
+    const newMaximizedWindow = maximizedWindow === windowName ? '' : windowName;
+    setMaximizedWindow(newMaximizedWindow);
+  }
+
+  const isMaximized = (maximizedWindow, windowName) => {
+    return maximizedWindow === windowName;
+  }
+
+  const isAnyOtherWindowMaximized = (maximizedWindow, windowName) => {
+    return maximizedWindow !== windowName && maximizedWindow.length > 0;
+  }
+    
   return (
-    <div className="App">
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src="/vite.svg" className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://reactjs.org" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+    <div 
+      className="App flex flex-col items-center bg-robin-egg-blue min-h-screen p-6">
+      
+      <Editor 
+        id="editor"
+        maximizeHandler={handleMaximize}
+        changeHandler={handleChange}
+        isMaximized={isMaximized(maximizedWindow, 'editor')}
+        isMinimized={isAnyOtherWindowMaximized(maximizedWindow, 'editor')}
+        content={markdown}>
+      </Editor>
+        <Previewer 
+          id="preview"
+          maximizeHandler={handleMaximize}
+          changeHandler={handleChange}
+          isMaximized={isMaximized(maximizedWindow, 'previewer')}
+          isMinimized={isAnyOtherWindowMaximized(maximizedWindow, 'previewer')}
+          content={markdown} />
+    
     </div>
   )
 }
